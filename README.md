@@ -4,3 +4,4 @@ you can change time and date by USART commands, you can change prescalers and TC
 PB2, PB5 - blinking LED as T1, 
 PB1 - DCF output
 USART  -9600, 8 bit , 1 stopbit , parity none
+TO DO : RTC time, NMEA messages
