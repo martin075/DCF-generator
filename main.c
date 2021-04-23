@@ -133,7 +133,15 @@ int main(void)
 //	hour_dec_to_BCD(11);
 //	parity_date = day_cal_dec_to_BCD(21)^day_to_BCD(4)^month_to_BCD(10)^year_to_BCD(21);
 	parity_date = parity_date;
-
+	printf_P(PSTR("Help\n"));
+	printf_P(PSTR("prescalers of T1- **del1, **del2,..**del5 \n"));
+	printf_P(PSTR("TCNT1 of T1- **imp65535 max \n"));
+	printf_P(PSTR("settings of hours- **hod01,..**hod23 \n"));
+	printf_P(PSTR("settings of minutes- **min01,..**min59 \n"));
+	printf_P(PSTR("settings of days- **day01,..**day31 \n"));
+	printf_P(PSTR("settings of month- **mon01,..**mon12 \n"));
+	printf_P(PSTR("settings of years- **yea00,..**yea99 \n"));
+	printf_P(PSTR("settings of day of week- **cda00,..**cda07 \n"));
 	printf("pocet imp:%u\n",impulzy);
 	
 	
