@@ -142,15 +142,15 @@ int main(void)
 	printf_P(PSTR("settings of month- **mon01,..**mon12 \n"));
 	printf_P(PSTR("settings of years- **yea00,..**yea99 \n"));
 	printf_P(PSTR("settings of day of week- **cda00,..**cda07 \n"));
-	printf("pocet imp:%u\n",impulzy);
+	printf("amount of TCNT1:%u\n",impulzy);
 	
 	
-	printf("preddelicka:%i\n",delicka);
+	printf("T1 prescaler:%i\n",delicka);
 	while(1)
 	 {
 	 if(nova_sprava){
 	  x = dlzka = dlzka_spravy(prijem);
-	  printf_P(PSTR("Nacitane znaky %d\n\r"),x);
+	  printf_P(PSTR("received chars %d\n\r"),x);
 	  	for(i=0;i<dlzka;i++)
 			{	sprava[i] = prijem[i];
 			}
@@ -172,10 +172,10 @@ int main(void)
 				impulzy = ( 10000*(sprava[6]-48) + 1000*(sprava[7]-48) + 100*(sprava[8]-48) + 10*(sprava[9]-48) );
 				}
 				else {impulzy = impulzy;uartSendString(">65534\n");}
-			printf_P(PSTR("Nacitane imp%u\n"),impulzy);
+			printf_P(PSTR("received imp%u\n"),impulzy);
 			}break;
-		case 0: {	printf("0nespravny format, napr. **imp35534-->\n");
-				printf("else prijata sprava->");
+		case 0: {	printf("bad format, napr. **imp35534-->\n");
+				printf("error format,...->");
 			}break;
 		case 2: {
 			//delicka=timer_tick( 1*(vysli[6]-48) );printf("preddelicka:%i\n",delicka);printf("1preddelicka:%i\n",(vysli[6]-48)); 
@@ -193,10 +193,10 @@ int main(void)
 			}break;
 		case 8:{if( ( (sprava[5]-48 ) < 8) && ((sprava[5]-48)>0 ) ){day_to_BCD((sprava[5]-48) );}
 			}break;
-		default :	printf("nespravny format, napr. **imp35534, **hod13, **hod02-->\n");
+		default :	printf("bad format, **imp35534, **hod13, **hod02-->\n");
 		} // end of switch
 		printf("\n");
-		for(i=22;i<59;i++)
+		for(i=21;i<59;i++)
 			{	
 			printf(" %d",casova_sprava[i]);
 			}		
@@ -310,16 +310,16 @@ void min_dec_to_BCD(int number)
 	//unsigned int temp=0;
 	minBCD[8] = '\0';
 	
-	casova_sprava[28]=minBCD[6] = (number/40);
-	casova_sprava[27]=minBCD[5] = ( (number-minBCD[6]*40)/20);
-	casova_sprava[26]=minBCD[4] = ( (number-minBCD[6]*40)-(minBCD[5]*20) )/10;
-	casova_sprava[25]=minBCD[3] = ( (number-minBCD[6]*40)-(minBCD[5]*20)-(minBCD[4]*10) )/8;
-	casova_sprava[24]=minBCD[2] = ( (number-minBCD[6]*40)-(minBCD[5]*20)-(minBCD[4]*10)-(minBCD[3]*8) )/4;
-	casova_sprava[23]=minBCD[1] = ( (number-minBCD[6]*40)-(minBCD[5]*20)-(minBCD[4]*10)-(minBCD[3]*8)-(minBCD[2]*4) )/2;
-	casova_sprava[22]=minBCD[0] = ( (number-minBCD[6]*40)-(minBCD[5]*20)-(minBCD[4]*10)-(minBCD[3]*8)-(minBCD[2]*4)-(minBCD[1]*2) )/1;
+	casova_sprava[27]=minBCD[6] = (number/40);
+	casova_sprava[26]=minBCD[5] = ( (number-minBCD[6]*40)/20);
+	casova_sprava[25]=minBCD[4] = ( (number-minBCD[6]*40)-(minBCD[5]*20) )/10;
+	casova_sprava[24]=minBCD[3] = ( (number-minBCD[6]*40)-(minBCD[5]*20)-(minBCD[4]*10) )/8;
+	casova_sprava[23]=minBCD[2] = ( (number-minBCD[6]*40)-(minBCD[5]*20)-(minBCD[4]*10)-(minBCD[3]*8) )/4;
+	casova_sprava[22]=minBCD[1] = ( (number-minBCD[6]*40)-(minBCD[5]*20)-(minBCD[4]*10)-(minBCD[3]*8)-(minBCD[2]*4) )/2;
+	casova_sprava[21]=minBCD[0] = ( (number-minBCD[6]*40)-(minBCD[5]*20)-(minBCD[4]*10)-(minBCD[3]*8)-(minBCD[2]*4)-(minBCD[1]*2) )/1;
 	parity =  minBCD[0]^minBCD[1]^minBCD[2]^minBCD[3]^minBCD[4]^minBCD[5]^minBCD[6];
-	casova_sprava[29]=minBCD[7] = parity;
-	printf("BCD kod minuty %d ",number);
+	casova_sprava[28]=minBCD[7] = parity;
+	printf("BCD code minutes %d ",number);
 	for(i=0;i<8;i++)
 		{	
 		printf(" %d ",minBCD[i]);
@@ -334,15 +334,15 @@ void hour_dec_to_BCD(int number)
 	//unsigned int temp=0;
 	hourBCD[7] = '\0';
 	
-	casova_sprava[35]=hourBCD[5] = (number/20);
-	casova_sprava[34]=hourBCD[4] = (number-hourBCD[5]*20)/10;
-	casova_sprava[33]=hourBCD[3] = ( (number-hourBCD[5]*20)-(hourBCD[4]*10) )/8;
-	casova_sprava[32]=hourBCD[2] = ((number-hourBCD[5]*20)-(hourBCD[4]*10)-(hourBCD[3]*8) )/4;
-	casova_sprava[31]=hourBCD[1] = ((number-hourBCD[5]*20)-(hourBCD[4]*10)-(hourBCD[3]*8)-(hourBCD[2]*4) )/2;
-	casova_sprava[30]=hourBCD[0] = ((number-hourBCD[5]*20)-(hourBCD[4]*10)-(hourBCD[3]*8)-(hourBCD[2]*4)-(hourBCD[1]*2) )/1;
+	casova_sprava[34]=hourBCD[5] = (number/20);
+	casova_sprava[33]=hourBCD[4] = (number-hourBCD[5]*20)/10;
+	casova_sprava[32]=hourBCD[3] = ( (number-hourBCD[5]*20)-(hourBCD[4]*10) )/8;
+	casova_sprava[31]=hourBCD[2] = ((number-hourBCD[5]*20)-(hourBCD[4]*10)-(hourBCD[3]*8) )/4;
+	casova_sprava[30]=hourBCD[1] = ((number-hourBCD[5]*20)-(hourBCD[4]*10)-(hourBCD[3]*8)-(hourBCD[2]*4) )/2;
+	casova_sprava[29]=hourBCD[0] = ((number-hourBCD[5]*20)-(hourBCD[4]*10)-(hourBCD[3]*8)-(hourBCD[2]*4)-(hourBCD[1]*2) )/1;
 	parity =  hourBCD[0]^hourBCD[1]^hourBCD[2]^hourBCD[3]^hourBCD[4]^hourBCD[5];
-	casova_sprava[36]=hourBCD[6] = parity;
-	printf("BCD kod hodiny %d ",number);
+	casova_sprava[35]=hourBCD[6] = parity;
+	printf("BCD code hours %d ",number);
 	for(i=0;i<7;i++)
 		{	
 		printf(" %d ",hourBCD[i]);
@@ -356,12 +356,12 @@ unsigned int day_cal_dec_to_BCD(int number)
 	daycBCD[6] = '\0';
 
 	casova_sprava[41]=daycBCD[5] = (number/20);
-	casova_sprava[40]=daycBCD[4] = (number-daycBCD[5]*20)/10;
+	casova_sprava[40]=daycBCD[4] = (number - daycBCD[5]*20)/10;
 	casova_sprava[39]=daycBCD[3] = ( (number-daycBCD[5]*20)-daycBCD[4]*10 )/8;
 	casova_sprava[38]=daycBCD[2] = ( (number-daycBCD[5]*20)-daycBCD[4]*10-daycBCD[3]*8 )/4;
 	casova_sprava[37]=daycBCD[1] = ( (number-daycBCD[5]*20)-daycBCD[4]*10-daycBCD[3]*8-daycBCD[2]*4 )/2;
-	daycBCD[0] = ( (number-daycBCD[5]*20)-daycBCD[4]*10-daycBCD[3]*8-daycBCD[2]*4-daycBCD[1]*2 )/1;
-	casova_sprava[42]=parity =  daycBCD[0]^daycBCD[1]^daycBCD[2]^daycBCD[3]^daycBCD[4]^daycBCD[5];
+	casova_sprava[36]=daycBCD[0] = ( (number-daycBCD[5]*20)-daycBCD[4]*10-daycBCD[3]*8-daycBCD[2]*4-daycBCD[1]*2 )/1;
+	parity =  daycBCD[0]^daycBCD[1]^daycBCD[2]^daycBCD[3]^daycBCD[4]^daycBCD[5];
 	
 	return parity;
 }
@@ -371,9 +371,9 @@ unsigned int day_to_BCD(int number)
 	unsigned int parity=0;
 	dayBCD[3] = '\0';
 
-	casova_sprava[45]=dayBCD[2] = (number)/4;
-	casova_sprava[44]=dayBCD[1] = (number-dayBCD[2]*4)/2;
-	casova_sprava[43]=dayBCD[0] = ((number-dayBCD[2]*4)-(dayBCD[1]*2) )/1;
+	casova_sprava[44]=dayBCD[2] = (number)/4;
+	casova_sprava[43]=dayBCD[1] = (number-dayBCD[2]*4)/2;
+	casova_sprava[42]=dayBCD[0] = ((number-dayBCD[2]*4)-(dayBCD[1]*2) )/1;
 	parity =  dayBCD[0]^dayBCD[1]^dayBCD[2]^dayBCD[3];
 	return parity;
 }
@@ -383,11 +383,11 @@ unsigned int month_to_BCD(int number)
 	unsigned int parity=0;
 	monthBCD[5] = '\0';
 
-	casova_sprava[50]=monthBCD[4] = (number/10);
-	casova_sprava[49]=monthBCD[3] = (number-monthBCD[4]*10)/8;
-	casova_sprava[48]=monthBCD[2] = ( (number-monthBCD[4]*10)-(monthBCD[3]*8) )/4;
-	casova_sprava[47]=monthBCD[1] = ( (number-monthBCD[4]*10)-(monthBCD[3]*8)-(monthBCD[2]*4) )/2;
-	casova_sprava[46]=monthBCD[0] = ( (number-monthBCD[4]*10)-(monthBCD[3]*8)-(monthBCD[2]*4)-(monthBCD[1]*2) )/1;
+	casova_sprava[49]=monthBCD[4] = (number/10);
+	casova_sprava[48]=monthBCD[3] = (number-monthBCD[4]*10)/8;
+	casova_sprava[47]=monthBCD[2] = ( (number-monthBCD[4]*10)-(monthBCD[3]*8) )/4;
+	casova_sprava[46]=monthBCD[1] = ( (number-monthBCD[4]*10)-(monthBCD[3]*8)-(monthBCD[2]*4) )/2;
+	casova_sprava[45]=monthBCD[0] = ( (number-monthBCD[4]*10)-(monthBCD[3]*8)-(monthBCD[2]*4)-(monthBCD[1]*2) )/1;
 	parity =  monthBCD[0]^monthBCD[1]^monthBCD[2]^monthBCD[3]^monthBCD[4];
 	return parity;
 }
@@ -396,14 +396,14 @@ unsigned int year_to_BCD(int number)
 {	unsigned int parity=0;
 	yearBCD[8] = '\0';
 
-	casova_sprava[58]=yearBCD[7] = (number/80);
-	casova_sprava[57]=yearBCD[6] = (number-yearBCD[7]*80)/40;
-	casova_sprava[56]=yearBCD[5] = ( (number-yearBCD[7]*80)-(yearBCD[6]*40) )/20;
-	casova_sprava[55]=yearBCD[4] = ( (number-yearBCD[7]*80)-(yearBCD[6]*40)-(yearBCD[5]*20) )/10;
-	casova_sprava[54]=yearBCD[3] = ( (number-yearBCD[7]*80)-(yearBCD[6]*40)-(yearBCD[5]*20)-(yearBCD[4]*10) )/8;
-	casova_sprava[53]=yearBCD[2] = ( (number-yearBCD[7]*80)-(yearBCD[6]*40)-(yearBCD[5]*20)-(yearBCD[4]*10)-(yearBCD[3]*8) )/4;
-	casova_sprava[52]=yearBCD[1] = ( (number-yearBCD[7]*80)-(yearBCD[6]*40)-(yearBCD[5]*20)-(yearBCD[4]*10)-(yearBCD[3]*8)-(yearBCD[2]*4) )/2;
-	casova_sprava[51]=yearBCD[0] = ( (number-yearBCD[7]*80)-(yearBCD[6]*40)-(yearBCD[5]*20)-(yearBCD[4]*10)-(yearBCD[3]*8)-(yearBCD[2]*4)-(yearBCD[1]*2) )/1;
+	casova_sprava[57]=yearBCD[7] = (number/80);
+	casova_sprava[56]=yearBCD[6] = (number-yearBCD[7]*80)/40;
+	casova_sprava[55]=yearBCD[5] = ( (number-yearBCD[7]*80)-(yearBCD[6]*40) )/20;
+	casova_sprava[54]=yearBCD[4] = ( (number-yearBCD[7]*80)-(yearBCD[6]*40)-(yearBCD[5]*20) )/10;
+	casova_sprava[53]=yearBCD[3] = ( (number-yearBCD[7]*80)-(yearBCD[6]*40)-(yearBCD[5]*20)-(yearBCD[4]*10) )/8;
+	casova_sprava[52]=yearBCD[2] = ( (number-yearBCD[7]*80)-(yearBCD[6]*40)-(yearBCD[5]*20)-(yearBCD[4]*10)-(yearBCD[3]*8) )/4;
+	casova_sprava[51]=yearBCD[1] = ( (number-yearBCD[7]*80)-(yearBCD[6]*40)-(yearBCD[5]*20)-(yearBCD[4]*10)-(yearBCD[3]*8)-(yearBCD[2]*4) )/2;
+	casova_sprava[50]=yearBCD[0] = ( (number-yearBCD[7]*80)-(yearBCD[6]*40)-(yearBCD[5]*20)-(yearBCD[4]*10)-(yearBCD[3]*8)-(yearBCD[2]*4)-(yearBCD[1]*2) )/1;
 	parity =  yearBCD[0]^yearBCD[1]^yearBCD[2]^yearBCD[3]^yearBCD[4]^yearBCD[5]^yearBCD[6]^yearBCD[7];
 	return parity;
 }
