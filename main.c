@@ -11,7 +11,8 @@
 
 #include "uart.h"
 
-#define MAX_STRLEN 14	// minus 2 characters
+#define MAX_STRLEN 64	// minus 2 characters
+#define UTC_offset 2
 
 // Global variables  --------------------
 //volatile uint8_t tick=0,once=1;
@@ -46,6 +47,7 @@ unsigned int day_to_BCD(int number);
 unsigned int month_to_BCD(int number);
 unsigned int year_to_BCD(int number);
 void dcf_out(int i);
+
 //---------------------------------------
 
 // Interrupt
@@ -85,18 +87,20 @@ ISR (TIMER1_OVF_vect){
 }  
 
 ISR(USART_RX_vect){
-	static int cnt=0,i;
+	static int cnt=0,i,start=0;
 	char prijaty_znak;
 	volatile char prijate[MAX_STRLEN];	//docasna premenna
 	
 	prijaty_znak = usart_receive();
 	
 	//if(znak == 'T' ){zac=1;cnt=0;}
-	if( (prijaty_znak != '\n') && ( prijaty_znak != '\r') && (cnt<MAX_STRLEN-2) ){
+	if( (prijaty_znak == '$')||(prijaty_znak == '#') ){start=1;cnt=0;}
+	if( (start == 1)&&(prijaty_znak != '\n') && ( prijaty_znak != '\r') && (cnt<MAX_STRLEN-2)  ){
 			prijate[cnt]=prijaty_znak;cnt++;
 		}
 		else {
 			prijate[cnt]= '\0'; // koniec spravy osetrit znakom \0
+			start = 0;
 			for(i=0;i<(cnt);i++)
 				prijem[i]=prijate[i];
 			//strncpy(nastavenie,prijem,MAX_STRLEN); 
@@ -112,7 +116,7 @@ ISR(USART_RX_vect){
 int main(void)
 {
 	int delicka=2,mod=2;
-	uint8_t i,dlzka=2;
+	uint8_t i,dlzka=2,coma=0;
 	char sprava[MAX_STRLEN],vysli[MAX_STRLEN];
 	unsigned int parity_date=0;
 	
@@ -134,14 +138,14 @@ int main(void)
 //	parity_date = day_cal_dec_to_BCD(21)^day_to_BCD(4)^month_to_BCD(10)^year_to_BCD(21);
 	parity_date = parity_date;
 	printf_P(PSTR("Help\n"));
-	printf_P(PSTR("prescalers of T1- **del1, **del2,..**del5 \n"));
-	printf_P(PSTR("TCNT1 of T1- **imp65535 max \n"));
-	printf_P(PSTR("settings of hours- **hod01,..**hod23 \n"));
-	printf_P(PSTR("settings of minutes- **min01,..**min59 \n"));
-	printf_P(PSTR("settings of days- **day01,..**day31 \n"));
-	printf_P(PSTR("settings of month- **mon01,..**mon12 \n"));
-	printf_P(PSTR("settings of years- **yea00,..**yea99 \n"));
-	printf_P(PSTR("settings of day of week- **cda00,..**cda07 \n"));
+	printf_P(PSTR("prescalers of T1- ##del1, ##del2,..##del5 \n"));
+	printf_P(PSTR("TCNT1 of T1- ##imp65535 max \n"));
+	printf_P(PSTR("settings of hours- ##hod01,..##hod23 \n"));
+	printf_P(PSTR("settings of minutes- ##min01,..##min59 \n"));
+	printf_P(PSTR("settings of days- ##day01,..##day31 \n"));
+	printf_P(PSTR("settings of month- ##mon01,..##mon12 \n"));
+	printf_P(PSTR("settings of years- ##yea00,..##yea99 \n"));
+	printf_P(PSTR("settings of day of week- ##cda00,..##cda07 \n"));
 	printf("amount of TCNT1:%u\n",impulzy);
 	
 	
@@ -174,7 +178,7 @@ int main(void)
 				else {impulzy = impulzy;uartSendString(">65534\n");}
 			printf_P(PSTR("received imp%u\n"),impulzy);
 			}break;
-		case 0: {	printf("bad format, napr. **imp35534-->\n");
+		case 0: {	printf("bad format, ##imp35534-->\n");
 				printf("error format,...->");
 			}break;
 		case 2: {
@@ -193,7 +197,27 @@ int main(void)
 			}break;
 		case 8:{if( ( (sprava[5]-48 ) < 8) && ((sprava[5]-48)>0 ) ){day_to_BCD((sprava[5]-48) );}
 			}break;
-		default :	printf("bad format, **imp35534, **hod13, **hod02-->\n");
+		case 9:{if( ((sprava[7]-48 ) <= 2) && ((sprava[9]-48)<=5 ) ){
+				hour_dec_to_BCD(10*(sprava[7]-48)+(sprava[8]-48)+UTC_offset );
+				min_dec_to_BCD(10*(sprava[9]-48)+(sprava[10]-48) );
+			 
+				 for(i=4;i<MAX_STRLEN-2;i++){
+				  if( (sprava[i]) == ',')coma++;
+				  if(coma == 9){
+				   	if( ((10*(sprava[i+1]-48)+(sprava[i+2]-48))<32) && ((10*(sprava[i+1]-48)+(sprava[i+2]-48))>0 ) && (((10*(sprava[i+3]-48)+(sprava[i+4]-48)))<13) && (((10*(sprava[i+3]-48)+(sprava[i+4]-48)))>0) ){
+					//printf("BCD code days %d \n",10*(sprava[i+1]-48)+(sprava[i+2]-48));
+					//printf("BCD code months %d \n",10*(sprava[i+3]-48)+(sprava[i+4]-48));
+					//printf("BCD code years %d \n",10*(sprava[i+5]-48)+(sprava[i+6]-48)); //for debug
+					day_cal_dec_to_BCD(10*(sprava[i+1]-48)+(sprava[i+2]-48));
+				   	month_to_BCD(10*(sprava[i+3]-48)+(sprava[i+4]-48));
+				   	year_to_BCD(10*(sprava[i+5]-48)+(sprava[i+6]-48));
+					}
+					coma=0;
+					}
+			  	 } //for
+				}
+			}break;
+		default :	printf("bad format, ##imp35534, ##hod13, ##hod02-->\n");
 		} // end of switch
 		printf("\n");
 		for(i=21;i<59;i++)
@@ -214,8 +238,8 @@ int over_spravu(char *vstup)
 {
 	int vysledok=0;
 
-	if (vstup[2]=='i' && vstup[3]=='m'  && vstup[4]=='p'){vysledok = 1;}
-	if (vstup[2]=='d' && vstup[3]=='e'  && vstup[4]=='l'){vysledok = 2;} // prescaler
+	if(vstup[2]=='i' && vstup[3]=='m'  && vstup[4]=='p'){vysledok = 1;}
+	if(vstup[2]=='d' && vstup[3]=='e'  && vstup[4]=='l'){vysledok = 2;} // prescaler
 	if((vstup[2]!='i' && vstup[3]!='m'  && vstup[4]!='p') && (vstup[2]!='d' && vstup[3]!='e'  && vstup[4]!='l')) vysledok = 0;
 	if(vstup[2]=='h' && vstup[3]=='o'  && vstup[4]=='d')vysledok = 3;	//hours
 	if(vstup[2]=='m' && vstup[3]=='i'  && vstup[4]=='n')vysledok = 4;	//minutes
@@ -223,6 +247,7 @@ int over_spravu(char *vstup)
 	if(vstup[2]=='m' && vstup[3]=='o'  && vstup[4]=='n')vysledok = 6;	//month
 	if(vstup[2]=='y' && vstup[3]=='e'  && vstup[4]=='a')vysledok = 7;	//year
 	if(vstup[2]=='c' && vstup[3]=='d'  && vstup[4]=='a')vysledok = 8; // day of week
+	if(vstup[1]=='G'  && vstup[3]=='R' && vstup[4]=='M' && vstup[5]=='C'){vysledok = 9;printf("GPS time\n");}	//NMEA RMC
 	return vysledok;
 }
 
@@ -303,10 +328,10 @@ return(rovnaky) ;
 }
 
 
-
 void min_dec_to_BCD(int number)
 {
-	unsigned int parity=0,i;
+	unsigned int parity=0;
+	//unsigned int i;
 	//unsigned int temp=0;
 	minBCD[8] = '\0';
 	
@@ -320,17 +345,18 @@ void min_dec_to_BCD(int number)
 	parity =  minBCD[0]^minBCD[1]^minBCD[2]^minBCD[3]^minBCD[4]^minBCD[5]^minBCD[6];
 	casova_sprava[28]=minBCD[7] = parity;
 	printf("BCD code minutes %d ",number);
-	for(i=0;i<8;i++)
-		{	
-		printf(" %d ",minBCD[i]);
-		}
-	uartSendChar('\n');
+	//for(i=0;i<8;i++)
+	//	{	
+	//	printf(" %d ",minBCD[i]);
+	//	}
+	//uartSendChar('\n');	//for debug
 }
 
 
 void hour_dec_to_BCD(int number)
 {
-	unsigned int parity=0,i;
+	unsigned int parity=0;
+	//unsigned int i;
 	//unsigned int temp=0;
 	hourBCD[7] = '\0';
 	
@@ -343,12 +369,12 @@ void hour_dec_to_BCD(int number)
 	parity =  hourBCD[0]^hourBCD[1]^hourBCD[2]^hourBCD[3]^hourBCD[4]^hourBCD[5];
 	casova_sprava[35]=hourBCD[6] = parity;
 	printf("BCD code hours %d ",number);
-	for(i=0;i<7;i++)
-		{	
-		printf(" %d ",hourBCD[i]);
-		parity =  hourBCD[i]^hourBCD[i];
-		}
-	uartSendChar('\n');
+	//for(i=0;i<7;i++)
+	//	{	
+	//	printf(" %d ",hourBCD[i]);
+	//	parity =  hourBCD[i]^hourBCD[i];
+	//	}
+	//uartSendChar('\n');	//for debug
 }
 
 unsigned int day_cal_dec_to_BCD(int number)
@@ -362,7 +388,7 @@ unsigned int day_cal_dec_to_BCD(int number)
 	casova_sprava[37]=daycBCD[1] = ( (number-daycBCD[5]*20)-daycBCD[4]*10-daycBCD[3]*8-daycBCD[2]*4 )/2;
 	casova_sprava[36]=daycBCD[0] = ( (number-daycBCD[5]*20)-daycBCD[4]*10-daycBCD[3]*8-daycBCD[2]*4-daycBCD[1]*2 )/1;
 	parity =  daycBCD[0]^daycBCD[1]^daycBCD[2]^daycBCD[3]^daycBCD[4]^daycBCD[5];
-	
+	printf("BCD code day %d ",number);
 	return parity;
 }
 
@@ -389,6 +415,7 @@ unsigned int month_to_BCD(int number)
 	casova_sprava[46]=monthBCD[1] = ( (number-monthBCD[4]*10)-(monthBCD[3]*8)-(monthBCD[2]*4) )/2;
 	casova_sprava[45]=monthBCD[0] = ( (number-monthBCD[4]*10)-(monthBCD[3]*8)-(monthBCD[2]*4)-(monthBCD[1]*2) )/1;
 	parity =  monthBCD[0]^monthBCD[1]^monthBCD[2]^monthBCD[3]^monthBCD[4];
+	printf("BCD code month %d ",number);
 	return parity;
 }
 
@@ -405,5 +432,6 @@ unsigned int year_to_BCD(int number)
 	casova_sprava[51]=yearBCD[1] = ( (number-yearBCD[7]*80)-(yearBCD[6]*40)-(yearBCD[5]*20)-(yearBCD[4]*10)-(yearBCD[3]*8)-(yearBCD[2]*4) )/2;
 	casova_sprava[50]=yearBCD[0] = ( (number-yearBCD[7]*80)-(yearBCD[6]*40)-(yearBCD[5]*20)-(yearBCD[4]*10)-(yearBCD[3]*8)-(yearBCD[2]*4)-(yearBCD[1]*2) )/1;
 	parity =  yearBCD[0]^yearBCD[1]^yearBCD[2]^yearBCD[3]^yearBCD[4]^yearBCD[5]^yearBCD[6]^yearBCD[7];
+	printf("BCD code year %d \n",number);
 	return parity;
 }
